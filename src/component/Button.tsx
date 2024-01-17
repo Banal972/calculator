@@ -28,11 +28,11 @@ const ButtonStyled = styled.button<ButtonStyle>`
 
 
 export default function Button(
-    { children, style, $bgcolor, color }
+    { children, ...rest}
     : Props
 ) {
     return (
-        <ButtonStyled style={style} $bgcolor={$bgcolor} color={color} >{children}</ButtonStyled>
+        <ButtonStyled {...rest}>{children}</ButtonStyled>
     )
 
 }

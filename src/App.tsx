@@ -52,13 +52,13 @@ function App() {
   // 이전 입력값 혹은 다음 입력값을 넣으면 , 를 찍어줍니다.
   useEffect(()=>{
     if(!operator){ // 사칙연산이 안들어가 있을 경우
-      if(prevNum === "") return setKeypad('0'); // 빈값이면 0 으로 수정
+      if(prevNum == "") return;
       setKeypad(prevNum.replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // 정규식을 이용해서 3자리 , 찍기
     }else{
-      if(nextNum === "") return setKeypad('0'); // 빈값이면 0 으로 수정
+      if(nextNum == "") return;
       setKeypad(nextNum.replace(/\B(?=(\d{3})+(?!\d))/g, ',')); 
     }
-  },[prevNum,nextNum]);
+  },[prevNum,nextNum,operator]);
 
   // 사칙연산 이벤트
   const operatorHandler = (e : string)=>{
