@@ -27,122 +27,189 @@ const Grid = styled.div`
   gap : 5px;
 `;
 
-const Input = styled.input`
-  font-size : 20px;
+const InputStyled = styled.div`
+  font-size : 26px;
   text-align: right;
   width : 100%;
   height : 30px;
   padding : 0 0.5em;
   box-sizing : border-box;
+  border : none;
 `
 
 function App() {
 
-  // 키패드에 보여줄 number
+  // 사칙연산
+  const [operator,setOperator] = useState<string | null>(null);
+  // 이전 입력값
+  const [prevNum,setPrevNum] = useState('');
+  // 다음 입력값
+  const [nextNum,setNextNum] = useState('');
+
+  // 화면에 보여주는 keypad
   const [keypad,setKeypad] = useState('0');
 
-  // input 가져오기
-  const [input,setInput] = useState('0');
-
+  // 이전 입력값 혹은 다음 입력값을 넣으면 , 를 찍어줍니다.
   useEffect(()=>{
+    if(!operator){ // 사칙연산이 안들어가 있을 경우
+      if(prevNum === "") return setKeypad('0'); // 빈값이면 0 으로 수정
+      setKeypad(prevNum.replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // 정규식을 이용해서 3자리 , 찍기
+    }else{
+      if(nextNum === "") return setKeypad('0'); // 빈값이면 0 으로 수정
+      setKeypad(nextNum.replace(/\B(?=(\d{3})+(?!\d))/g, ',')); 
+    }
+  },[prevNum,nextNum]);
 
-    const keyDownHandler = (e : KeyboardEvent)=>{
-        
-      e.preventDefault();
+  // 사칙연산 이벤트
+  const operatorHandler = (e : string)=>{
+    setOperator(e); // 사칙연산 추가
+  }
 
-      switch(e.key){
-        case "Backspace" :
-            // 마지막 문자열 삭제
-            removeHanlder();
-          break
-        case "/" :
-            
-          break
-        case "%" :
+  // 숫자 키패트 이벤트
+  const keypadHanlder = (e : number)=>{
 
-          break
-        
-      }
+    // 가져온 숫자를 문자열로
+    let getNumber = e.toString();
 
+    if(!operator){
+      if(e === 0 && prevNum === "") return;
+      setPrevNum((prev)=> prev + getNumber);
+    }else{
+      if(e === 0 && nextNum === "") return;
+      setNextNum((prev)=> prev + getNumber);
     }
 
-    window.addEventListener('keydown',keyDownHandler);
+  }
 
-    return ()=>{
-      window.removeEventListener('keydown',keyDownHandler);
+  // . 이벤트
+  const dotHanlder = ()=>{
+    if(!operator){
+      let number = Number(prevNum);
+      if(Number.isInteger(number)) setPrevNum((prev)=>prev + '.'); // 정수면 . 을 붙여줍니다.
+    }else{
+      let number = Number(nextNum);
+      if(Number.isInteger(number)) setNextNum((prev)=>prev + '.');
+    }
+  }
+
+  // 계산 이벤트
+  const calcHandler = ()=>{
+
+    let calc : number = 0
+  
+    if(!operator) return; // 사칙연산을 안넣으면 무시
+
+    switch(operator){
+      case "+" :
+        calc = Number(prevNum) + Number(nextNum);
+      break;
+      case "-" :
+        calc = Number(prevNum) - Number(nextNum);
+      break;
+      case "x" :
+        calc = Number(prevNum) * Number(nextNum);
+      break;
+      case "/" :
+        calc = Number(prevNum) / Number(nextNum);
+      break;
     }
 
-  });
+    const result = calc.toString()
 
-  useEffect(()=>{
+    // 사칙연산 초기화 후 이전값에 저장해서 , 이벤트 발생시켜 값을 넣어줍니다.
+    setOperator(null); // 사칙연산 초기화
+    setPrevNum(result); // 계산값을 이전에 저장
+    setNextNum(''); // 다음을 비워서 바로 계산할수있게
 
-    // 로컬 환경에 따라 , 가 찍히게
-    let number = parseFloat(input).toLocaleString();
-    setKeypad(number);
+  }
 
-  },[input]);
+  // 하나씩 지우기 이벤트
+  const removeHanlder = ()=>{
+    
+    if(!operator){
+      setPrevNum((prev)=>prev.slice(0,-1)) // 0,-1 을 하면 마지막껄 삭제해줍니다.
+    }else{
+      setNextNum((prev)=>prev.slice(0,-1))
+    }
+  }
 
   // 초기화 이벤트
   const resetHanlder = ()=>{
-    setInput('0');
-  }
-
-  // 한글자씩 삭제
-  const removeHanlder = ()=>{
-    // 마지막 문자열 삭제
-    if(input === '0'){
-      return;
-    }
-    setInput((prev)=> prev.slice(0,-1));
-  }
-
-  const addHanlder = (e : number | string)=>{
-
-    let val = e.toString();
-
-    if(/^[0-9]*$/.test(val)){
-      setInput(input + val);
-    }
-
+    setOperator(null);
+    setPrevNum('');
+    setNextNum('');
+    setKeypad('0');
   }
 
   return (
     <AppStyled>
       
       <Box>
-        
-        <Input type='text' value={keypad} readOnly />
+
+        <InputStyled>{keypad}</InputStyled>
 
         <Grid style={{marginTop : 10}}>
-          <Button onClick={removeHanlder}><IoBackspaceOutline /></Button>
-          <Button onClick={resetHanlder}>C</Button>
-          <Button>%</Button>
-          <Button>/</Button>
-          { 
-            [7,8,9].map((e,i)=><Button onClick={()=>addHanlder(e)} key={i}>{e}</Button>)
-          }
 
-          <Button>x</Button>
+          <Button 
+            onClick={removeHanlder}
+            style={{gridColumn : "2 span"}}
+          ><IoBackspaceOutline /></Button>
+
+          <Button 
+            onClick={resetHanlder}
+          >AC</Button>
           
-          <Button>4</Button>
-          <Button>5</Button>
-          <Button>6</Button>
+          <Button 
+            onClick={()=>operatorHandler('/')}
+          >/</Button>
+          {
+            [7,8,9].map((e,i)=>
+              <Button 
+                onClick={()=>keypadHanlder(e)} 
+                key={i}
+              >{e}</Button>
+            )
+          }
+          <Button 
+            onClick={()=>operatorHandler('x')}
+          >x</Button>
+          {
+            [4,5,6].map((e,i)=>
+              <Button 
+                onClick={()=>keypadHanlder(e)} 
+                key={i}
+              >{e}</Button>
+            )
+          }
+          <Button
+            onClick={()=>operatorHandler('-')}
+          >-</Button>
+          {
+            [1,2,3].map((e,i)=>
+              <Button 
+                onClick={()=>keypadHanlder(e)}
+                key={i}
+              >{e}</Button>)
+          }
+          <Button
+            onClick={()=>operatorHandler('+')}
+          >+</Button>
+          
+          <Button 
+            onClick={()=>keypadHanlder(0)}
+            style={{gridColumn : "2 span"}} 
+          >0</Button>
 
-          <Button>-</Button>
+          <Button 
+            onClick={dotHanlder}
+          >.</Button>
 
-          <Button>1</Button>
-          <Button>2</Button>
-          <Button>3</Button>
+          <Button
+            onClick={calcHandler}
+            $bgcolor={"#ff5858"}
+            color={"#fff"}
+          >=</Button>
 
-          <Button>+</Button>
-
-          <Button style={{gridColumn : "2 span"}} >0</Button>
-
-          <Button>.</Button>
-
-          <Button>=</Button>
-
-          {/* bgColor={"#f15d5d"} color={"#fff"}  */}
         </Grid>
 
       </Box>

@@ -1,14 +1,20 @@
 import React from 'react'
 import styled from 'styled-components';
 
-type Props = {
+
+interface ButtonStyle {
+    $bgcolor? : string // styled-components 의 props가 DOM으로 안보내지게 하기위해선 앞에 $ 를 붙여줍니다.
+    color? : string
+}
+
+interface Props extends ButtonStyle{
     children : React.ReactNode,
-    style? : React.CSSProperties,
+    style? : React.CSSProperties
     onClick? : React.MouseEventHandler
 }
 
 // 버튼 스타일
-const ButtonStyled = styled.button`
+const ButtonStyled = styled.button<ButtonStyle>`
     border-radius : 5px;
     border : 1px solid #ccc;
     display : flex;
@@ -16,23 +22,17 @@ const ButtonStyled = styled.button`
     justify-content: center;
     height : 50px;
     cursor: pointer;
-    background : #fff;
-    color : #000;
+    background : ${props => props.$bgcolor || '#fff'};
+    color : ${props => props.color || "#000"};
 `;
 
-/* ButtonStyled.defaultProps = {
-    bgColor : '#fff',
-    color : '#000'
-} */
 
 export default function Button(
-    { children, style, ...rest }
+    { children, style, $bgcolor, color }
     : Props
 ) {
-
     return (
-        <ButtonStyled style={style} {...rest} >{children}</ButtonStyled>        
+        <ButtonStyled style={style} $bgcolor={$bgcolor} color={color} >{children}</ButtonStyled>
     )
 
 }
-
